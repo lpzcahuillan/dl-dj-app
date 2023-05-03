@@ -2,43 +2,43 @@ from pathlib import Path
 import os
 import environ
 
-
-env = environ.env()
+env = environ.Env()
 environ.Env.read_env()
 
 ENVIRONMENT = env
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(SECRET_KEY)
+# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get(DEBUG)
+DEBUG = os.environ.get('DEBUG')
 
 ALLOWED_HOSTS = [
-    "127.0.0.1"
-    "localhost"
+    "127.0.0.1",
+    "localhost",
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    'https://localhost:3000'
+    'http://localhost:3000',
+    'https://solopython.com',
 ]
+
+# CSRF_COOKIE_DOMAIN = "solopython.com"
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'https://solopython.com',
+]
+
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-#CSRF_COOKIE_DOMAIN = "lpzc.com"
-
-CSRF_TRUSTED_ORIGINS = [
-    'https://localhost:3000'
-]
 
 # Application definition
 
@@ -52,7 +52,10 @@ DJANGO_APPS = [
 ]
 
 PROJECT_APPS = [
-
+    'apps.user',
+    'apps.blog',
+    'apps.category',
+    'apps.ml',
 ]
 
 THIRD_PARTY_APPS = [
@@ -60,24 +63,23 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'ckeditor',
     'ckeditor_uploader',
-]   
+    'import_export',
+]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
-
-CKEDITOR_CONFIGS = [
+CKEDITOR_CONFIGS = {
     'default': {
-        'toolbar': 'full'
+        'toolbar': 'full',
         'autoParagraph': False
     }
-]
-
+}
 CKEDITOR_UPLOAD_PATH = "/media/"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware'
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -108,27 +110,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-""" DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-} """
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    "default": env.db("DATABASES_URL"),
+    "default": env.db("DATABASE_URL"),
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 # Password validation
-# https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 PASSWORD_HASHERS = [
-    "django.contrib.auth.hashers.Argon2PasswordHashers"
-    "django.contrib.auth.hashers.PBKDF2PasswordHashers"
-    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHashers"
-    "django.contrib.auth.hashers.BCryptSHA256PasswordHashers"
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -148,31 +150,44 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.0/topics/i18n/
-
+# https://docs.djangoproject.com/en/3.2/topics/i18n/
 LANGUAGE_CODE = 'es'
-
-TIME_ZONE = 'America/Santiago'
-
+TIME_ZONE = 'America/Lima'
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
+# https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media' )
-MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'build/static')
 ]
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 16,
+}
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+FILE_UPLOAD_PERMISSIONS = 0o640
+
+EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
